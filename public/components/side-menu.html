@@ -1,0 +1,71 @@
+<link rel="import" href="../lib/polymer/polymer.html">
+<link rel="import" href="../lib/iron-ajax/iron-ajax.html">
+
+<dom-module id="side-menu">
+    <template>
+        <style type="text/css">
+            @media (max-width: 767px) {
+                .sidebar {
+                    bottom: 0;
+                    left: 0;
+                    z-index: 1000;
+                    display: block;
+                    padding: 20px;
+                    overflow-x: hidden;
+                    overflow-y: auto;
+                    background-color: #f5f5f5;
+                    border-right: 1px solid #eee;
+                }
+
+                .sidebar .nav-sidebar {
+                    margin-bottom: 0;
+                }
+            }
+        </style>
+        <iron-ajax
+                auto
+                url="[[config]]"
+                handle-as="json"
+                on-response="initModels"
+                last-response="{{menu}}"></iron-ajax>
+        <div class="col-sm-3 col-md-2 sidebar">
+            <ul class="nav nav-sidebar">
+                <template
+                    is="dom-repeat"
+                    items="[[menu.models]]">
+                    <li><a
+                            href="#"
+                            on-click="selectModel"
+                            model="[[item]]">[[item.displayPlural]]</a></li>
+                </template>
+            </ul>
+        </div>
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+                is: "side-menu",
+                properties: {
+                    config: {
+                        type: String,
+                        readonly: true
+                    },
+                    menu: {
+                        type: Object,
+                        readonly: true
+                    },
+                    currentModel: {
+                        type: Object,
+                        notify: true,
+                        reflectToAttribute: true
+                    }
+                },
+                initModels: function () {
+                    this.currentModel = this.menu.models[0];
+                },
+                selectModel: function (e) {
+                    this.currentModel = e.currentTarget.model;
+                }
+            });
+</script>

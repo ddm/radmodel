@@ -1,0 +1,56 @@
+<link rel="import" href="../lib/polymer/polymer.html">
+<link rel="import" href="form-view.html">
+<link rel="import" href="list-view.html">
+
+<dom-module id="main-panel">
+    <template>
+        <style>
+            .create-button {
+                -webkit-transform: translateY(-10%);
+                -ms-transform: translateY(-10%);
+                -o-transform: translateY(-10%);
+                transform: translateY(-10%);
+            }
+        </style>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <h1 class="page-header">
+                <button
+                    type="button"
+                    class="btn btn-success"
+                    on-click="createDocument"><i class="fa fa-plus" aria-hidden="true"></i>
+                </button>
+                <span>[[model.displayPlural]]</span>
+            </h1>
+            <form-view
+                id="formView"
+                model="[[model]]"
+                on-saved="refresh"></form-view>
+            <list-view
+                id="listView"
+                model="[[model]]"
+                on-edit="editDocument"
+                on-deleted="refresh"></list-view>
+        </div>
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+                is: "main-panel",
+                properties: {
+                    model: {
+                        type: Object,
+                        readonly: true
+                    }
+                },
+                createDocument: function () {
+                    this.$.formView.editDocument({});
+                },
+                editDocument: function (e, doc) {
+                    this.$.formView.editDocument(doc);
+                },
+                refresh: function () {
+                    this.$.listView.refresh();
+                }
+            });
+</script>

@@ -1,0 +1,24 @@
+{
+  "name": "radmodel",
+  "authors": [
+    "Dimitri del Marmol"
+  ],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "public/lib/",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "underscore": "1.8.x",
+    "jquery": "2.x",
+    "bootstrap": "3.x",
+    "polymer": "1.7.x",
+    "iron-ajax": "PolymerElements/iron-ajax#1.4.x",
+    "bootstrap3-typeahead": "4.0.x",
+    "moment": "2.15.x",
+    "font-awesome": "4.7.x"
+  }
+}

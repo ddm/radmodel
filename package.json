@@ -1,0 +1,35 @@
+{
+  "name": "radmodel",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "bower install",
+    "start": "node ./bin/www",
+    "lint": "eslint *.js routes/*.js",
+    "audit": "nsp check",
+    "upgrade-dependencies": "ncu -ua && npm install --no-spin",
+    "prepare": "npm install --no-spin && npm test && npm run lint && npm run audit",
+    "prepare-patch": "npm run prepare && npm version patch",
+    "prepare-minor": "npm run prepare && npm version minor",
+    "prepare-major": "npm run prepare && npm version major",
+    "publish-release": "git push && git push --tags"
+  },
+  "dependencies": {
+    "body-parser": "1.15.2",
+    "bower": "1.7.9",
+    "cookie-parser": "1.4.3",
+    "debug": "2.2.0",
+    "express": "4.14.0",
+    "morgan": "1.7.0",
+    "serve-favicon": "2.3.0",
+    "thinky": "2.3.7",
+    "underscore": "1.8.3"
+  },
+  "devDependencies": {
+    "eslint": "3.9.1",
+    "istanbul": "0.4.5",
+    "mocha": "3.1.2",
+    "npm-check-updates": "2.8.6",
+    "nsp": "2.6.2"
+  }
+}

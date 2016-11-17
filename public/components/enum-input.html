@@ -1,0 +1,56 @@
+<link rel="import" href="../lib/polymer/polymer.html">
+
+<dom-module id="enum-input">
+    <template>
+        <div class="dropdown">
+            <button
+                class="btn btn-default dropdown-toggle"
+                type="button"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="true">
+                [[value]]
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <template
+                    is="dom-repeat"
+                    items="[[field.enum]]"
+                    as="choice">
+                    <li>
+                        <a
+                            href="#"
+                            field-id="[[field.id]]"
+                            choice="[[choice]]"
+                            on-click="update">[[choice]]</a>
+                    </li>
+                </template>
+            </ul>
+        </div>
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+                is: "enum-input",
+                properties: {
+                    field: {
+                        type: Object,
+                        readonly: true
+                    },
+                    value: {
+                        type: String,
+                        notify: true
+                    }
+                },
+                update: function (e) {
+                    var fieldId = e.target.fieldId;
+                    var newValue = e.target.choice;
+                    this.value = newValue;
+                    this.fire("chosen", {
+                        fieldId: fieldId,
+                        newValue: newValue
+                    });
+                }
+            });
+</script>

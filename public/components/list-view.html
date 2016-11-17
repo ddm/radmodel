@@ -1,0 +1,70 @@
+<link rel="import" href="../lib/polymer/polymer.html">
+<link rel="import" href="../lib/iron-ajax/iron-ajax.html">
+<link rel="import" href="list-item.html">
+
+
+<dom-module id="list-view">
+    <template>
+        <iron-ajax
+            auto
+            id="listRequest"
+            url="[[buildListUrl(model)]]"
+            handle-as="json"
+            last-response="{{listResponse}}"></iron-ajax>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <template
+                        is="dom-repeat"
+                        items="[[model.fields]]"
+                        as="field">
+                        <th>[[field.display]]</th>
+                    </template>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <template
+                    is="dom-repeat"
+                    items="[[listResponse.items]]"
+                    as="doc">
+                    <tr
+                        is="list-item"
+                        model="[[model]]"
+                        doc="[[doc]]"
+                        on-edit="fireEdit"
+                        on-deleted="refresh"></tr>
+                </template>
+                </tbody>
+            </table>
+        </div>
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+                is: "list-view",
+                properties: {
+                    model: {
+                        type: Object,
+                        readonly: true
+                    },
+                    listResponse: {
+                        type: Object,
+                        readonly: true
+                    }
+                },
+                buildListUrl: function (model) {
+                    return model && model.id && ("/data/" + model.id.toLowerCase());
+                },
+                fireEdit: function (e, doc) {
+                    this.fire("edit", doc);
+                },
+                refresh: function () {
+                    this.$.listRequest.generateRequest();
+                }
+            });
+</script>
+
+

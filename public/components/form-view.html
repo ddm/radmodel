@@ -1,0 +1,198 @@
+<link rel="import" href="../lib/polymer/polymer.html">
+<link rel="import" href="../lib/iron-ajax/iron-ajax.html">
+<link rel="import" href="relation-input.html">
+<link rel="import" href="enum-input.html">
+
+<dom-module id="form-view">
+    <template>
+        <iron-ajax
+                id="createRequest"
+                url="[[buildCreateUrl(model)]]"
+                method="POST"
+                content-type="application/json"
+                handle-as="json"
+                body="[[doc]]"
+                on-response="fireSaved"></iron-ajax>
+        <iron-ajax
+                id="updateRequest"
+                url="[[buildUpdateUrl(model, doc)]]"
+                method="PUT"
+                content-type="application/json"
+                handle-as="json"
+                body="[[doc]]"
+                on-response="fireSaved"></iron-ajax>
+        <div
+            id="formViewModal"
+            class="modal fade"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="[[model.displaySingular]]">
+            <div
+                class="modal-dialog"
+                role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button
+                            class="close"
+                            type="button"
+                            aria-label="Close"
+                            on-click="hideForm">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">
+                            [[model.displaySingular]]
+                        </h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal">
+                            <template
+                                is="dom-repeat"
+                                items="[[model.fields]]"
+                                as="field">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">
+                                        [[field.display]]
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <template
+                                            is="dom-if"
+                                            if="[[!field.relation]]">
+                                            <template
+                                                is="dom-if"
+                                                if="[[!field.enum]]">
+                                                <input
+                                                    type="[[mapInput(field)]]"
+                                                    class="form-control"
+                                                    field-id="[[field.id]]"
+                                                    value="[[fieldValue(doc, field)]]"
+                                                    on-input="updateField">
+                                            </template>
+                                            <template
+                                                is="dom-if"
+                                                if="[[field.enum]]">
+                                                <enum-input
+                                                    field="[[field]]"
+                                                    value="[[fieldValue(doc, field)]]"
+                                                    on-chosen="updateEnum"></enum-input>
+                                            </template>
+                                        </template>
+                                        <template is="dom-if" if="[[multipleChoice(field)]]">
+                                            <relation-input
+                                                field="[[field]]"
+                                                value="[[fieldValue(doc, field)]]"
+                                                on-chosen="updateRelation"></relation-input>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            on-click="saveDocument">
+                            <i class="fa fa-floppy-o" aria-hidden="true"></i>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-danger"
+                            on-click="hideForm">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                        </button>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+                is: "form-view",
+                properties: {
+                    model: {
+                        type: Object,
+                        readonly: true
+                    },
+                    doc: {
+                        type: Object,
+                        value: {},
+                        notify: true,
+                        observer: "refresh"
+                    }
+                },
+                editDocument: function (doc) {
+                    this.doc = doc;
+                    this.showForm();
+                },
+                mapInput: function (field) {
+                    var map = {
+                        Date: "date",
+                        Number: "number"
+                    };
+                    return (field && field.type && map[field.type]) || "text";
+                },
+                multipleChoice: function (field) {
+                    var multiChoiceRelations = ["belongsTo", "hasOne"];
+                    return field && field.relation && field.relation.type && _.contains(multiChoiceRelations, field.relation.type);
+                },
+                fieldValue: function (doc, field) {
+                    var value = doc && field && doc[field.id];
+
+                    if (value && (field.type === "Date")) {
+                        return moment(value).format("YYYY-MM-DD");
+                    } else {
+                        return value || "";
+                    }
+                },
+                updateField: function (e) {
+                    var fieldId = e.target.fieldId;
+                    var newValue = e.target.value;
+                    this.set("doc." + fieldId, newValue);
+                },
+                updateEnum: function (e, data) {
+                    var fieldId = data.fieldId;
+                    var newValue = data.newValue;
+                    this.set("doc." + fieldId, newValue);
+                },
+                updateRelation: function (e, data) {
+                    var relationId = data && data.field && data.field.id;
+                    var itemId = data && data.item && data.item.id;
+                    this.set("doc." + relationId + "Id", itemId);
+                },
+                buildCreateUrl: function (model) {
+                    return model && model.id && ("/data/" + model.id.toLowerCase());
+                },
+                buildUpdateUrl: function (model, doc) {
+                    return model && model.id && doc && doc.id && ("/data/" + model.id.toLowerCase() + "/" + doc.id);
+                },
+                saveDocument: function () {
+                    if (this.doc && this.doc.id) {
+                        this.$.updateRequest.generateRequest();
+                    } else {
+                        this.$.createRequest.generateRequest();
+                    }
+                    this.hideForm();
+                },
+                fireSaved: function () {
+                    this.fire("saved");
+                },
+                showForm: function () {
+                    $(this.$.formViewModal).modal("show");
+                },
+                hideForm: function () {
+                    $(this.$.formViewModal).modal("hide");
+                },
+                refresh: function () {
+                    var self = this;
+                    _.each(self.$.formViewModal.querySelectorAll("relation-input"), function (input) {
+                        input.refresh();
+                        input.value = self.fieldValue(self.doc, input.field);
+                    });
+                }
+            });
+</script>
+
+

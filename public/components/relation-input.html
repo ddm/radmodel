@@ -1,0 +1,64 @@
+<link rel="import" href="../lib/polymer/polymer.html">
+<link rel="import" href="../lib/iron-ajax/iron-ajax.html">`
+
+<dom-module id="relation-input">
+    <template>
+        <iron-ajax
+            url="[[listUrl(field.relation.foreignType)]]"
+            handle-as="json"
+            on-response="populate"
+            last-response="{{suggestions}}"></iron-ajax>
+        <input
+            type="text"
+            class="form-control"
+            data-provide="typeahead"
+            autocomplete="off"
+            value="[[itemToString(value)]]">
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+                is: "relation-input",
+                properties: {
+                    field: {
+                        type: Object,
+                        readonly: true
+                    },
+                    suggestions: {
+                        type: Object,
+                        readonly: true
+                    },
+                    value: {
+                        type: Object,
+                        notify: true
+                    }
+                },
+                itemToString: function (item) {
+                    return (item && (item.label || item.name || item.lastName || item.number)) || "";
+                },
+                listUrl: function (modelId) {
+                    return modelId && "/data/" + modelId.toLowerCase();
+                },
+                populate: function () {
+                    var self = this;
+                    $(this.querySelector("input")).typeahead({
+                                                                 source: (self.suggestions && self.suggestions.items) || [],
+                                                                 displayText: function (item) {
+                                                                     return self.itemToString(item);
+                                                                 },
+                                                                 afterSelect: function (item) {
+                                                                     self.value = item;
+                                                                     self.fire("chosen", {
+                                                                         field: self.field,
+                                                                         item: item
+                                                                     });
+                                                                 }
+                                                             });
+                },
+                refresh: function () {
+                    $(this.querySelector("input")).typeahead("destroy");
+                    this.querySelector("iron-ajax").generateRequest();
+                }
+            });
+</script>

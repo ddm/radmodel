@@ -1,0 +1,76 @@
+<link rel="import" href="../lib/polymer/polymer.html">
+<link rel="import" href="../lib/iron-ajax/iron-ajax.html">
+
+<dom-module id="list-item">
+    <template>
+        <template
+            is="dom-repeat"
+            items="[[model.fields]]"
+            as="field">
+            <td>[[fieldValue(doc, field)]]</td>
+        </template>
+        <td>
+            <button
+                type="button"
+                class="btn btn-danger btn-xs"
+                on-click="deleteDocument"><i class="fa fa-minus" aria-hidden="true"></i>
+                <iron-ajax
+                    url="[[buildDeleteUrl(model, doc)]]"
+                    method="DELETE"
+                    handle-as="json"
+                    on-response="fireDeleted"></iron-ajax>
+            </button>
+            
+        </td>
+    </template>
+</dom-module>
+
+<script>
+    Polymer({
+                is: "list-item",
+                extends: "tr",
+                listeners: {
+                    click: "fireEdit"
+                },
+                properties: {
+                    model: {
+                        type: Object,
+                        readonly: true
+                    },
+                    doc: {
+                        type: Object,
+                        readonly: true
+                    },
+                },
+                fieldValue: function (doc, field) {
+                    var value = doc && field && field.id  && doc[field.id];
+
+                    if (value && field.type && (field.type === "Date")) {
+                        var result = moment(value).format("DD/MM/YYYY");
+                        return result;
+                    } else if (_.isObject(value)) {
+                        return this.itemToString(value);
+                    } else {
+                        return value || "";
+                    }
+                },
+                itemToString: function (item) {
+                    return (item && (item.label || item.name || item.lastName || item.number)) || "";
+                },
+                buildDeleteUrl: function (model, doc) {
+                    return model && model.id && doc && doc.id && ("/data/" + model.id.toLowerCase() + "/" + doc.id);
+                },
+                deleteDocument: function (e) {
+                    // Stop click event from bubbling up and showing modal
+                    if (e) e.stopPropagation();
+
+                    Polymer.dom(e.currentTarget).querySelector("iron-ajax").generateRequest();
+                },
+                fireDeleted: function () {
+                    this.fire("deleted", this.doc);
+                },
+                fireEdit: function () {
+                    this.fire("edit", this.doc);
+                }
+            });
+</script>
